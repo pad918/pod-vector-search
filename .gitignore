@@ -1,0 +1,7 @@
+# Folders
+.conda/
+__pycache__/
+
+
+# File types
+*.db
