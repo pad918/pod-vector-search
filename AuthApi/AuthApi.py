@@ -4,6 +4,7 @@
 
 from flask import Flask
 from flask import request
+import json
 from AuthConnector import AuthConnector
 from SQLiteAuthConnector import SQLiteAuthConnector
 from PasswordValidator import PasswordValidator
@@ -20,19 +21,24 @@ def login():
     user_name = request.args.get('user')
     password = request.args.get('password')
     if(user_name==None or password==None):
-        return '<p>Bad Request</p>', 400
+        return '{}', 400
     try:
         hash_entry = auth_connector.get_hash(user_name)
         valid_password = password_validator.validate_password(password, hash_entry)
         if(not valid_password):
-            return '<p>Invalid username or password</p>', 401
+            return '{}', 401
 
-        return f'<p>Successfully logged in to user {user_name}</p>'
+        successObject = {
+            "user": user_name,
+            "token": "TO BE ASSIGNED"
+        }
+
+        return json.dumps(successObject), 200
     
     except ValueError as e:
-        return '<p>Invalid username or password</p>', 401
+        return '{}', 401
     except:
-        return '<p>Internal Server Error</p>', 500
+        return '{}', 500
 
 @app.route('/register')
 def register():
