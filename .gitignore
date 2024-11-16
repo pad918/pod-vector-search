@@ -1,7 +1,8 @@
 # Folders
 .conda/
 __pycache__/
-
+node_modules/
+client/node_modules/
 
 # File types
 *.db

@@ -21,12 +21,16 @@ class SQLiteAuthConnector(AuthConnector):
         cur = self.con.cursor()
         cur.execute("SELECT password_hash FROM users WHERE username=?", (username,))
         result = cur.fetchone()
-        if result == None: raise ValueError(f"Did not find any hash entry for user: {username}")
-        if len(result) != 1: raise ValueError(f"Found multiple hash entries for user: {username}")
+        if result == None: 
+            raise ValueError(f"Did not find any hash entry for user: {username}")
+        if len(result) != 1: 
+            raise ValueError(f"Found multiple hash entries for user: {username}")
         return result[0]
 
     def register_user(self, username, hash):
         cur = self.con.cursor()
-        cur.execute("INSERT INTO users (username, password_hash) VALUES (?,?)", (username, hash))
+        cur.execute(
+            "INSERT INTO users (username, password_hash) VALUES (?,?)", 
+            (username, hash))
         self.con.commit()
 

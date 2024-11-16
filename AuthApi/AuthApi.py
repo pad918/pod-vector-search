@@ -7,11 +7,13 @@ from flask import request
 from AuthConnector import AuthConnector
 from SQLiteAuthConnector import SQLiteAuthConnector
 from PasswordValidator import PasswordValidator
+from UsernameValidator import UsernameValidator
 
 app = Flask(__name__)
 
 auth_connector:AuthConnector = SQLiteAuthConnector("auth.db")
 password_validator:PasswordValidator = PasswordValidator()
+username_validator:UsernameValidator = UsernameValidator()
 
 @app.route('/login')
 def login():
@@ -40,6 +42,11 @@ def register():
     if(user_name==None or password==None):
         return '<p>Bad Request</p>', 400
     
+    # Validate username
+    valid_username = username_validator.validate_username(user_name)
+    if(not valid_username):
+        return '<p>Invalid username</p>', 400
+
     # Create a new password hash entry and add to db
     hash_entry = password_validator.generate_password_hash_entry(user_name, password)
     auth_connector.register_user(user_name, hash_entry)
