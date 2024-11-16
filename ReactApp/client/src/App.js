@@ -14,7 +14,7 @@ const authReducer = (state, action) => {
       };
     case "LOGOUT_SUCCESS":
       return {
-        ...state,
+        ...state, 
         signed_in: false,
         auth_token: "",
         user_id: ""
@@ -28,11 +28,16 @@ function App() {
   
   const [auth, dispatchAuth] = React.useReducer(authReducer, {signed_in: false, auth_token: "", user_id: ""});
   
+  // If not signed in, only show login page
+  if(!auth.signed_in) {
+    return (<PasswordForm auth={auth} dispatchAuth={dispatchAuth}/>);
+  }
+
+  // If signed in, list all files owned by user?
   return (
     <div>
       <h1>React App</h1>
-      {auth.signed_in ? <h2>Authenticated as user {auth.user_id}</h2> : <PasswordForm auth={auth} dispatchAuth={dispatchAuth}/>}
-      
+      <h2>Authenticated as user {auth.user_id}</h2>
     </div>
     
   );
