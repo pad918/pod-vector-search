@@ -8,6 +8,7 @@ export default function PasswordForm({auth, dispatchAuth}) {
         fetch(`/login?user=${username}&password=${password}`)
             .then(res => {
                 console.log(res);
+                if(!res.ok) throw res;
                 return res.json();
             })
             .then(data => dispatchAuth({type: "LOGIN_SUCCESS", payload: {user_id: data.user, auth_token: data.token}}))
