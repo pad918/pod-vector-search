@@ -6,23 +6,13 @@ import sqlite_vec
 class VectorDB:
     def __init__(self, db_path):
         # Load vector extension
-        self.db = sqlite3.connect(db_path)
+        self.db = sqlite3.connect(db_path, check_same_thread=False)
         self.db.enable_load_extension(True)
         sqlite_vec.load(self.db)
         self.db.enable_load_extension(False)
 
         # Create table
         self.create_inital_db()
-
-
-        # Test db
-        self.add_row("http://www.example.com", "JAG HATAR JS! =)", "13:00")
-        self.add_row("http://www.example.com", "JAG HATAR JAVA! =)", "14:00")
-        self.add_row("http://www.example.com", "JAG HATAR PROLOG! =)", "13:37")
-
-        similar_captions = self.get_similar("programmering", 3)
-        captions = [self.get_row_with_id(c[0]) for c in similar_captions]
-        print("Similar captions: " + str(captions))
 
         
     
@@ -74,8 +64,17 @@ class VectorDB:
             INSERT INTO caption_vectors (rowid, embedding) 
                 VALUES (?,?)
             ''', (seq_num, vectors))
-            
-    def get_similar(self, caption:str, limit:int = 5):
+    
+    def search_captions(self, query:str, limit:int = 5):
+        row_ids = self.get_close_vectors(query, limit)
+        
+        # Remove the distance field
+        row_ids = [r[0] for r in row_ids]
+        
+        # Find the corresponding rows in the captions table
+        return [self.get_row_with_id(id) for id in row_ids]
+
+    def get_close_vectors(self, caption:str, limit:int = 5):
         vector = self.serialize_f32([i/1535.0 for i in range(1536)])
         
         result = self.db.execute('''

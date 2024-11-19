@@ -7,11 +7,11 @@ from VectorDB import VectorDB
 # Handles multithreaded background jobs for indexing
 
 class VideoIndexer(threading.Thread):
-    def __init__(self):
+    def __init__(self, db):
         super().__init__()
         self.jobs = Queue()
         self.running = True
-        self.vector_db = VectorDB("./tmp/vector_db.db")
+        self.vector_db = db
 
     def add_job(self, url):
         print(f"Adding job: {url}")
