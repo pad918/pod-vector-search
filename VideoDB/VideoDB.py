@@ -31,31 +31,14 @@ def login():
         print(e)
         return '{}', 500
 
-@app.route('/add_caption')
-def add_caption():
-    url = request.args.get('url')
-    caption = request.args.get('caption')
-    timestamp = request.args.get('timestamp')
-    if(url==None or caption==None):
-        return '{}', 400
-    
-    try:
-        db.add_row(url, caption, timestamp)
-        return json.dumps({"success": True}), 200
-    
-    except ValueError as e:
-        return '{}', 401
-    except Exception as e:
-        print(e)
-        return '{}', 500
-
 @app.route('/search')
 def search():
     query = request.args.get('query')
+    num_maches = request.args.get('top', default=5)
     if(query==None):
         return '{}', 400
     try:
-        return json.dumps(db.search_captions(query, 1)), 200
+        return json.dumps(db.search_captions(query, num_maches)), 200
     
     except ValueError as e:
         return '{}', 401
