@@ -5,7 +5,7 @@ export default function PasswordForm({auth, dispatchAuth}) {
     const [password, setPassword] = React.useState("");
     const trySignIn = (e) => {
         e.preventDefault();
-        fetch(`/login?user=${username}&password=${password}`)
+        fetch(`/api/auth/login?user=${username}&password=${password}`)
             .then(res => {
                 console.log(res);
                 if(!res.ok) throw res;

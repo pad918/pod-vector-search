@@ -30,20 +30,18 @@ export default function UploadPage({auth}) {
     
     const uploadJobRequest = (e) => {
         e.preventDefault();
-        currJobs.push(jobUrl);
-        let jobCopy = [...currJobs];
-        setCurrJobs(jobCopy);
+        setCurrJobs([...currJobs, jobUrl]);
         console.log(jobUrl + " ADDED");
-        /*fetch(`/upload?job_url=${jobUrl}`)
+        fetch(`/api/video/index_video?url=${jobUrl}`)
             .then(res => res.json())
             .then(data => console.log(data))
             .catch(err => console.log(err));
-        */
+        
     }
 
     return (
         <div>
-            <h1>Add upload jobs</h1>
+            <h1>Add upload jobs, Username: {auth.user_id}</h1>
             <form onSubmit={(e) => uploadJobRequest(e)}>
                 <input type="url" onChange={(e) => setJobUrl(e.target.value)}/>
                 <button type="submit">Submit</button>
