@@ -52,7 +52,7 @@ class VectorDB:
             SELECT * FROM captions WHERE id = ?
             ''', (row_id,)).fetchone()
 
-    def add_row(self, origin_url:str, caption:str, timestamp):
+    def add_row(self, origin_url:str, caption:str, timestamp:str, commit = True):
         vectors = self.serialize_f32(self.embeddings_generator.generate_embeddings(caption))
         
         self.db.execute('''
@@ -66,9 +66,16 @@ class VectorDB:
             INSERT INTO caption_vectors (rowid, embedding) 
                 VALUES (?,?)
             ''', (seq_num, vectors))
+        if commit:
+            self.db.commit()
     
+    def add_captions(self, origin_url:str, captions:List[str], timestamps:List[str]):
+        # Add all captions, and commit when all have been added
+        for caption, timestamp in zip(captions, timestamps):
+            self.add_row(origin_url, caption, timestamp, commit=False)
         self.db.commit()
-    
+        
+
     def search_captions(self, query:str, limit:int = 5):
         row_ids = self.get_close_vectors(query, limit)
         print(f"found: {len(row_ids)} rows")

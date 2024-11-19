@@ -1,6 +1,8 @@
 import threading
 import time
 import os
+import glob
+import webvtt
 from queue import Queue
 from yt_dlp import YoutubeDL
 from VectorDB import VectorDB
@@ -26,18 +28,48 @@ class VideoIndexer(threading.Thread):
             if not self.running:
                 break  
             print("Indexing video: " + url)
-            
-            # Download the subtitles
-            subs = self.get_subs(url)
-            if(subs == None):
-                print("Could not get subtitles")
-                continue
-
-            # Add to DB
-
-            print("Found subs: " + subs)
+            try:
+                self.process_video(url)
+            except Exception as e:
+                print(e) # Handle failure here
 
             print("Indexing done")
+    
+    def process_video(self, url):
+        # Download the subtitles
+        vtt_string = self.get_subs(url)
+        if(vtt_string == None):
+            print("Could not get subtitles")
+            raise Exception("Could not get subtitles")
+        vtt = webvtt.from_string(vtt_string)
+
+        # Add all the captions to the database
+        captions = []
+        timestamps = []
+        last_timestamp = None
+        curr_cap = ""
+        last = ""
+        for caption in vtt:
+            next = caption.text.strip()
+            if(last_timestamp == None):
+                last_timestamp = caption.start
+            if(next.startswith(last)):
+                to_add = next[len(last):].strip()
+                curr_cap += " " + to_add
+            elif(last.endswith(next) or next == last):
+                pass
+            else:
+                curr_cap += " " + next
+            if(len(curr_cap) >= 100):
+                #print(f"Added caption: {curr_cap}")
+                captions.append(curr_cap)
+                timestamps.append(str(last_timestamp))
+                curr_cap = ""
+                last_timestamp = None
+            last = next
+
+        print(f"Found: {len(captions)} captions, adding to db... estimated time = {len(captions)}s")   
+        self.vector_db.add_captions(url, captions, timestamps)
 
     def kill_all(self):
         self.running = False
@@ -48,27 +80,43 @@ class VideoIndexer(threading.Thread):
             self.jobs.put(None)
 
     def get_subs(self, url):
+        #dlp_args = {
+        #    'writeautomaticsub': False,
+        #    'writesubtitles': False,
+        #    'listsubtitles': True,
+        #    'skip_download': True,
+        #}
+        #with YoutubeDL(dlp_args) as ydl:
+        #    ydl.download(url)
+        #    print("listed formats")
         dlp_args = {
-            'writeautomaticsub': True,
+            'writeautomaticsub': False,
+            'writesubtitles': True,
             'subtitlesformat': 'vtt',
             'skip_download': True,
             'outtmpl': './tmp/subs' 
         }
         try:
             with YoutubeDL(dlp_args) as ydl:
-                # Download subtitles a temp file (can not be read directly)
-                a = ydl.download([url])
+                # Download subtitles as a temp file (can not be read directly)
+                ydl.download([url])
                 
+                # Find the temp file
+                files = glob.glob('./tmp/subs*en*.vtt')
+                if(len(files) == 0 or len(files) > 1):
+                    raise Exception(f"Could not find temp file for video: {url}")
+                subs_file = files[0]
+
                 # Read the text in the temp file
-                with open('./tmp/subs.en.vtt', 'r') as f:
+                with open(subs_file, 'r') as f:
                     subs = f.read()
                 
                 # Remove temp file
-                os.remove('./tmp/subs.en.vtt')
+                os.remove(subs_file)
                 return subs
         except Exception as e:
             print(e)
-            os.remove('./tmp/subs.en.vtt')
+            os.remove(subs_file)
             return None
         
 
