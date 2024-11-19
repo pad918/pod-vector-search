@@ -52,8 +52,9 @@ class VectorDB:
             SELECT * FROM captions WHERE id = ?
             ''', (row_id,)).fetchone()
 
-    def add_row(self, origin_url:str, caption:str, timestamp:str, commit = True):
-        vectors = self.serialize_f32(self.embeddings_generator.generate_embeddings(caption))
+    def add_row(self, origin_url:str, caption:str, timestamp:str, commit = True, vector = None):
+        if(vector == None):
+            vector = self.serialize_f32(self.embeddings_generator.generate_single_embedding(caption))
         
         self.db.execute('''
             INSERT INTO captions (origin_url, caption, timestamp) 
@@ -65,14 +66,26 @@ class VectorDB:
         self.db.execute('''
             INSERT INTO caption_vectors (rowid, embedding) 
                 VALUES (?,?)
-            ''', (seq_num, vectors))
+            ''', (seq_num, vector))
         if commit:
             self.db.commit()
     
     def add_captions(self, origin_url:str, captions:List[str], timestamps:List[str]):
+        # Use batching to speed up embedding computation (the slowest part of indexing)
+        def as_batch(lst, batch_size):
+            for i in range(0, len(lst), batch_size):
+                yield lst[i:i + batch_size]
+
+        batches = as_batch([(c,t) for c,t in zip(captions, timestamps)], 100)
+
         # Add all captions, and commit when all have been added
-        for caption, timestamp in zip(captions, timestamps):
-            self.add_row(origin_url, caption, timestamp, commit=False)
+        for batch in batches:
+            batch_captions   = [caption for caption, _ in batch]
+            batch_timestamps = [timestamp for _, timestamp in batch]
+            raw_vectors = self.embeddings_generator.generate_batch_embedding([caption for caption in batch_captions])
+            vectors = [self.serialize_f32(v) for v in raw_vectors]
+            for caption, timestamp, vector in zip(batch_captions, batch_timestamps, vectors):
+                self.add_row(origin_url, caption, timestamp, commit=False, vector=vector)
         self.db.commit()
         
 
@@ -86,7 +99,7 @@ class VectorDB:
         return [self.get_row_with_id(id) for id in row_ids]
 
     def get_close_vectors(self, caption:str, limit:int = 5):
-        vector = self.serialize_f32(self.embeddings_generator.generate_embeddings(caption))
+        vector = self.serialize_f32(self.embeddings_generator.generate_single_embedding(caption))
         result = self.db.execute('''
             SELECT
         rowid,

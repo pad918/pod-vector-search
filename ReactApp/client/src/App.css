@@ -118,3 +118,11 @@ iframe.youtube-iframe {
 	height: 40%;
 	width: 40%;
 }
+
+h2.caption {
+  align-items: center;
+  text-align: center;
+  font-style: italic;
+  padding-left: 30%;
+  padding-right: 30%;
+}

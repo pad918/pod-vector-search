@@ -37,7 +37,7 @@ export default function SearchPage({auth}) {
                 </form>
                 <hr />
                 {results.map((result, index) => (
-                    <VideoSearchResult url={result[1]} timestamp={result[3]} key={index} />
+                    <VideoSearchResult url={result[1]} timestamp={result[3]} caption={result[2]} key={index} />
                 ))}
             </div>
         </div>

@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function VideoSearchResult({url, timestamp}) {
+export default function VideoSearchResult({url, timestamp, caption}) {
     const timestampToSeconds = (timestamp) => {
         const [hours, minutes, seconds] = timestamp.split(":");
         return parseInt(parseFloat(hours)*3600 + parseFloat(minutes)*60 + parseFloat(seconds))
@@ -16,7 +16,7 @@ export default function VideoSearchResult({url, timestamp}) {
 
     return (
         <div>
-            <h2>Video: {url} @ {timestamp}</h2>
+            <h2 className="caption">"{caption}"</h2>
             <iframe className="youtube-iframe" src={`${embedd_url}?start=${seconds}`}>
             </iframe> 
         </div>
