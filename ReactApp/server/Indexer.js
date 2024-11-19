@@ -1,26 +1,36 @@
 const Queue = require('bull');
 
 const youtubedl = require('youtube-dl-exec')
+
+/*
+Plan:
+    Eftersom javascript är singlethreaded är det helt värdelöst
+    som backend. Node kommer därför endast användas som kliser
+    för att slippa cors? 
+    Kommer ha två python api:er en för vektordatabas, en för auth
+    Och alla requests kommer gå från frontend till nodejs, som 
+    skickar vidare till python api:erna (NODE SUGER!)
+
+*/
+
+
 class Indexer{
     constructor(){
         console.log("Created Indexer")
         this.jobQueue = new Queue('jobQueue');
-    }
-
-    get jobQueue(){
-        return this.jobQueue;
-    }
-
-    get previousJobs(){
-        return this.previousJobs;
+        this.jobQueue.process(function(job, done) {
+            console.log("Processing job", job);
+            console.log("Processing done")
+            done();
+          });
+        this.jobQueue.on('completed', function(job, result) {
+            console.log(`Job ${job} completed with result ${result}`);
+        });
     }
 
     addJob(url){
-        this.jobQueue.push(new Job(url));
+        this.jobQueue.add(new Job(url));
     }
-
-
-
     
 }
 
