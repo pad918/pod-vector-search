@@ -4,14 +4,11 @@ import { NavLink } from "react-router-dom";
 
 export default function HomePage({auth, dispatchAuth}) {
     
+    if(!auth.signed_in) return <PasswordForm auth={auth} dispatchAuth={dispatchAuth}/>;
     return (
         <div>
-            {
-            auth.signed_in ? 
                 <NavLink to="/upload">Upload / add index</NavLink>
-                : 
-                <PasswordForm auth={auth} dispatchAuth={dispatchAuth}/>
-            }
+                <NavLink to="/search">Search</NavLink>
         </div>
     );
 }

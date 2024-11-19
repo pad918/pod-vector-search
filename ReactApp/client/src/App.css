@@ -25,7 +25,7 @@
 }
 
 .App-link {
-  color: #61dafb;
+  color: white;
 }
 
 @keyframes App-logo-spin {
@@ -35,4 +35,86 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.root{
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+a:visited{
+  color:inherit;
+  color:azure;
+}
+
+a::marker {
+  color: azure;
+}
+
+.navlink {
+  color:azure;
+  text-decoration: none;
+}
+
+.navbar {
+  overflow: hidden;
+  background-color: rebeccapurple;
+  text-decoration-color: azure;
+}
+
+.navbar-item li {
+  display: inline-block;
+}
+
+li a {
+  display: inline-block;
+  color: azure;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
+ul{
+  list-style-type: none;
+  margin-left: 10px;
+  margin-right: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 10px; 
+}
+
+.title {
+  align-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+.content {
+  width: 100%;
+  align-content: center;
+  text-align: center;
+  justify-content: center;
+}
+
+form {
+  display: block;
+}
+
+input {
+  align-content: center;
+  text-align: center;
+  justify-content: center;
+  width: 40%;
+  height: 30px;
+}
+
+button {
+  height: 30px;
+  width: 100px;
+}
+
+iframe.youtube-iframe {
+  aspect-ratio: 16 / 9;
+	height: 40%;
+	width: 40%;
 }

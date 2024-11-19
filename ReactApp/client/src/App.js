@@ -4,7 +4,9 @@ import "./App.css";
 import PasswordForm  from "./components/PasswordForm.js";
 import UploadPage  from "./components/UploadPage.js";
 import HomePage  from "./components/HomePage.js";
+import SearchPage  from "./components/SearchPage.js";
 import { Routes, Route } from 'react-router-dom';
+
 
 const authReducer = (state, action) => {
   switch (action.type) {
@@ -36,6 +38,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage auth={auth} dispatchAuth={dispatchAuth}/>} />
         <Route path="/upload" element={<UploadPage auth={auth} />} />
+        <Route path="/search" element={<SearchPage auth={auth}/>} />
       </Routes>
     </>
     
