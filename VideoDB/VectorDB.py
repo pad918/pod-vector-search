@@ -2,9 +2,12 @@ import sqlite3
 import struct
 from typing import List
 import sqlite_vec
+from EmbeddingGenerator import EmbeddingGenerator
 
 class VectorDB:
-    def __init__(self, db_path):
+    def __init__(self, db_path, embeddings_generator:EmbeddingGenerator):
+        self.embeddings_generator = embeddings_generator
+
         # Load vector extension
         self.db = sqlite3.connect(db_path, check_same_thread=False)
         self.db.enable_load_extension(True)
@@ -13,8 +16,6 @@ class VectorDB:
 
         # Create table
         self.create_inital_db()
-
-        
     
     def create_inital_db(self):
         
@@ -23,7 +24,8 @@ class VectorDB:
             CREATE TABLE IF NOT EXISTS captions(
                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, 
                 origin_url TEXT NOT NULL, 
-                caption TEXT NOT NULL
+                caption TEXT NOT NULL,
+                timestamp TEXT NOT NULL
             )''')
         
         # Vector view / virtual table
@@ -31,7 +33,7 @@ class VectorDB:
             CREATE VIRTUAL TABLE IF NOT EXISTS caption_vectors 
                 USING vec0(embedding float[1536])
             ''')
-            
+        self.db.commit()
         print("Created new vector db with vector index")
     
     
@@ -51,12 +53,12 @@ class VectorDB:
             ''', (row_id,)).fetchone()
 
     def add_row(self, origin_url:str, caption:str, timestamp):
-        vectors = self.serialize_f32([i/1535.0 for i in range(1536)])
+        vectors = self.serialize_f32(self.embeddings_generator.generate_embeddings(caption))
         
         self.db.execute('''
-            INSERT INTO captions (origin_url, caption) 
-                VALUES (?,?)
-            ''', (origin_url, caption))
+            INSERT INTO captions (origin_url, caption, timestamp) 
+                VALUES (?,?,?)
+            ''', (origin_url, caption, timestamp))
         
         seq_num = self.get_last_seq_num()
         
@@ -65,9 +67,11 @@ class VectorDB:
                 VALUES (?,?)
             ''', (seq_num, vectors))
     
+        self.db.commit()
+    
     def search_captions(self, query:str, limit:int = 5):
         row_ids = self.get_close_vectors(query, limit)
-        
+        print(f"found: {len(row_ids)} rows")
         # Remove the distance field
         row_ids = [r[0] for r in row_ids]
         
@@ -75,8 +79,7 @@ class VectorDB:
         return [self.get_row_with_id(id) for id in row_ids]
 
     def get_close_vectors(self, caption:str, limit:int = 5):
-        vector = self.serialize_f32([i/1535.0 for i in range(1536)])
-        
+        vector = self.serialize_f32(self.embeddings_generator.generate_embeddings(caption))
         result = self.db.execute('''
             SELECT
         rowid,
