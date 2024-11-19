@@ -2,6 +2,9 @@ import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import PasswordForm  from "./components/PasswordForm.js";
+import UploadPage  from "./components/UploadPage.js";
+import HomePage  from "./components/HomePage.js";
+import { Routes, Route } from 'react-router-dom';
 
 const authReducer = (state, action) => {
   switch (action.type) {
@@ -27,20 +30,24 @@ const authReducer = (state, action) => {
 function App() {
   
   const [auth, dispatchAuth] = React.useReducer(authReducer, {signed_in: false, auth_token: "", user_id: ""});
-  
-  // If not signed in, only show login page
-  if(!auth.signed_in) {
-    return (<PasswordForm auth={auth} dispatchAuth={dispatchAuth}/>);
-  }
 
-  // If signed in, list all files owned by user?
   return (
-    <div>
-      <h1>React App</h1>
-      <h2>Authenticated as user {auth.user_id}</h2>
-    </div>
+    <>
+      <Routes>
+        <Route path="/" element={<HomePage auth={auth} dispatchAuth={dispatchAuth}/>} />
+        <Route path="/upload" element={<UploadPage auth={auth} />} />
+      </Routes>
+    </>
+    
     
   );
 }
 
 export default App;
+
+/*
+    <div>
+      <h1>React App</h1>
+      <h2>Authenticated as user {auth.user_id}</h2>
+    </div>
+*/
