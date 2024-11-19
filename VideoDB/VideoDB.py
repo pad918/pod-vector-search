@@ -32,6 +32,6 @@ def handler(signal, frame):
     indexer.kill_all()
     indexer.join()
     sys.exit(0)
-    
+
 signal.signal(signal.SIGINT, handler)
 #signal.pause()
