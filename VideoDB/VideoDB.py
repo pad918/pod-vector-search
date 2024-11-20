@@ -30,6 +30,21 @@ def login():
     except Exception as e:
         print(e)
         return '{}', 500
+    
+@app.route('/add_playlist')
+def add_playlist():
+    url = request.args.get('url')
+    if(url==None):
+        return '{}', 400
+    try:
+        indexer.add_playlist(url)
+        return json.dumps({}), 200
+    
+    except ValueError as e:
+        return '{}', 401
+    except Exception as e:
+        print(e)
+        return '{}', 500
 
 @app.route('/search')
 def search():

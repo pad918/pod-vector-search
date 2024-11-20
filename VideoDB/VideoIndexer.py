@@ -6,6 +6,7 @@ import webvtt
 from queue import Queue
 from yt_dlp import YoutubeDL
 from VectorDB import VectorDB
+from pytube import Playlist
 # Handles multithreaded background jobs for indexing
 
 class VideoIndexer(threading.Thread):
@@ -19,7 +20,12 @@ class VideoIndexer(threading.Thread):
         print(f"Adding job: {url}")
         self.jobs.put(url)
         print(f"Total number of jobs: {self.jobs.qsize()}")
-        
+    
+    def add_playlist(self, playlist_url):
+        print(f"Adding playlist: {playlist_url}")
+        playlist = Playlist(playlist_url)
+        for video in playlist.videos:
+            self.add_job(video.watch_url)
 
     def run(self):
         # Handle one job at the time
@@ -80,15 +86,6 @@ class VideoIndexer(threading.Thread):
             self.jobs.put(None)
 
     def get_subs(self, url):
-        #dlp_args = {
-        #    'writeautomaticsub': False,
-        #    'writesubtitles': False,
-        #    'listsubtitles': True,
-        #    'skip_download': True,
-        #}
-        #with YoutubeDL(dlp_args) as ydl:
-        #    ydl.download(url)
-        #    print("listed formats")
         dlp_args = {
             'writeautomaticsub': False,
             'writesubtitles': True,

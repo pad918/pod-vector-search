@@ -28,6 +28,14 @@ class VectorDB:
                 timestamp TEXT NOT NULL
             )''')
         
+        # Table with added videos
+        self.db.execute('''
+            CREATE TABLE IF NOT EXISTS videos(
+                id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, 
+                origin_url TEXT NOT NULL UNIQUE,
+                status TEXT NOT NULL
+            )''')
+
         # Vector view / virtual table
         self.db.execute('''
             CREATE VIRTUAL TABLE IF NOT EXISTS caption_vectors 
@@ -86,6 +94,13 @@ class VectorDB:
             vectors = [self.serialize_f32(v) for v in raw_vectors]
             for caption, timestamp, vector in zip(batch_captions, batch_timestamps, vectors):
                 self.add_row(origin_url, caption, timestamp, commit=False, vector=vector)
+
+        # Add video to videos table
+        self.db.execute('''
+            INSERT INTO videos (origin_url, status) 
+            VALUES (?,?)
+            ''', (origin_url, "indexed"))
+        
         self.db.commit()
         
 
